@@ -1,0 +1,73 @@
+CREATE TABLE roles(
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(30) NOT NULL UNIQUE
+);
+
+CREATE TABLE utilisateurs(
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    mot_de_passe VARCHAR(255) NOT NULL,
+    role_id INT REFERENCES roles(id) NOT NULL
+);
+
+CREATE TABLE annees_scolaires(
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(20) NOT NULL UNIQUE  
+);
+
+CREATE TABLE classes(
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(30) NOT NULL UNIQUE
+);
+
+CREATE TABLE matieres(
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE matiere_classe(
+    id SERIAL PRIMARY KEY,
+    classe_id INT REFERENCES classes(id) NOT NULL,
+    matiere_id INT REFERENCES matieres(id) NOT NULL,
+    UNIQUE(classe_id, matiere_id)
+);
+
+CREATE TABLE eleves(
+    id SERIAL PRIMARY KEY,
+    matricule VARCHAR(20) NOT NULL UNIQUE,
+    nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
+    status check('inscrit','non inscrit'),
+    etablissement_id;
+);
+
+CREATE TABLE inscriptions(
+    id SERIAL PRIMARY KEY,
+    eleve_id INT REFERENCES eleves(id) NOT NULL,
+    classe_id INT REFERENCES classes(id) NOT NULL,
+    annee_scolaire_id INT REFERENCES annees_scolaires(id) NOT NULL,
+    UNIQUE(eleve_id, annee_scolaire_id)  -- un élève = une seule inscription par année
+);
+
+CREATE TABLE periodes(
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(30) NOT NULL UNIQUE
+);
+
+CREATE TABLE evaluations(
+    id SERIAL PRIMARY KEY,
+    inscription_id INT REFERENCES inscriptions(id) ON DELETE CASCADE NOT NULL,
+    matiere_classe_id INT REFERENCES matiere_classe(id) NOT NULL,
+    utilisateur_id INT REFERENCES utilisateurs(id) NOT NULL,
+    periode_id INT REFERENCES periodes(id) NOT NULL,
+    type_evaluation VARCHAR(20) NOT NULL CHECK (type_evaluation IN ('Devoir1', 'Devoir2', 'Composition')),
+    note NUMERIC(4,2) NOT NULL CHECK (note BETWEEN 0 AND 20),
+    UNIQUE(inscription_id, matiere_classe_id, periode_id, type_evaluation)
+);
+
+CREATE TABLE etablissement(
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(30) NOT NULL UNIQUE
+);
